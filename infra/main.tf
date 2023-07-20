@@ -35,6 +35,7 @@ module "applicationinsights" {
   resource_token   = local.resource_token
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy log analytics
 # ------------------------------------------------------------------------------------------------------
@@ -46,11 +47,14 @@ module "loganalytics" {
   resource_token = local.resource_token
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy key vault
 # ------------------------------------------------------------------------------------------------------
-module "keyvault" {
-  source                   = "./modules/keyvault"
+module "azd-keyvault" {
+  source  = "andrewCluey/azd-keyvault/azurerm"
+  version = "0.1.0"
+
   location                 = var.location
   principal_id             = var.principal_id
   rg_name                  = azurerm_resource_group.rg.name
@@ -65,6 +69,7 @@ module "keyvault" {
   ]
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy cosmos
 # ------------------------------------------------------------------------------------------------------
@@ -76,6 +81,7 @@ module "cosmos" {
   resource_token = local.resource_token
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy app service plan
 # ------------------------------------------------------------------------------------------------------
@@ -86,6 +92,7 @@ module "appserviceplan" {
   tags           = azurerm_resource_group.rg.tags
   resource_token = local.resource_token
 }
+
 
 # ------------------------------------------------------------------------------------------------------
 # Deploy app service web app
@@ -108,6 +115,7 @@ module "web" {
 
   app_command_line = "./entrypoint.sh -o ./env-config.js && pm2 serve /home/site/wwwroot --no-daemon --spa"
 }
+
 
 # ------------------------------------------------------------------------------------------------------
 # Deploy app service api
@@ -136,6 +144,7 @@ module "api" {
   }]
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy app service apim
 # ------------------------------------------------------------------------------------------------------
@@ -149,6 +158,7 @@ module "apim" {
   application_insights_name = module.applicationinsights.APPLICATIONINSIGHTS_NAME
   sku                       = "Consumption"
 }
+
 
 # ------------------------------------------------------------------------------------------------------
 # Deploy app service apim-api
@@ -165,3 +175,7 @@ module "apimApi" {
   api_path                 = "todo"
   api_backend_url          = module.api.URI
 }
+
+
+
+
