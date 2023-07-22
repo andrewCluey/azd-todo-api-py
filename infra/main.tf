@@ -5,6 +5,8 @@ locals {
   api_command_line             = "gunicorn --workers 4 --threads 2 --timeout 60 --access-logfile \"-\" --error-logfile \"-\" --bind=0.0.0.0:8000 -k uvicorn.workers.UvicornWorker todo.app:app"
   cosmos_connection_string_key = "AZURE-COSMOS-CONNECTION-STRING"
 }
+
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy resource Group
 # ------------------------------------------------------------------------------------------------------
@@ -22,11 +24,14 @@ resource "azurerm_resource_group" "rg" {
   tags = local.tags
 }
 
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy application insights
 # ------------------------------------------------------------------------------------------------------
 module "applicationinsights" {
-  source           = "./modules/applicationinsights"
+  source  = "andrewCluey/azd-appinsights/azurerm"
+  version = "0.1.0"
+
   location         = var.location
   rg_name          = azurerm_resource_group.rg.name
   environment_name = var.environment_name
@@ -34,6 +39,7 @@ module "applicationinsights" {
   tags             = azurerm_resource_group.rg.tags
   resource_token   = local.resource_token
 }
+
 
 
 # ------------------------------------------------------------------------------------------------------
@@ -149,14 +155,16 @@ module "api" {
 # Deploy app service apim
 # ------------------------------------------------------------------------------------------------------
 module "apim" {
-  count                     = var.useAPIM ? 1 : 0
-  source                    = "./modules/apim"
-  name                      = "apim-${local.resource_token}"
-  location                  = var.location
-  rg_name                   = azurerm_resource_group.rg.name
-  tags                      = merge(local.tags, { "azd-service-name" : var.environment_name })
-  application_insights_name = module.applicationinsights.APPLICATIONINSIGHTS_NAME
-  sku                       = "Consumption"
+  count                           = var.useAPIM ? 1 : 0
+  source  = "andrewCluey/azd-apim/azurerm"
+  version = "0.1.0"
+
+  name                            = "apim-${local.resource_token}"
+  location                        = var.location
+  rg_name                         = azurerm_resource_group.rg.name
+  sku                             = "Consumption"
+  tags                            = merge(local.tags, { "azd-service-name" : var.environment_name })
+  appinsights_instrumentation_key = module.applicationinsights.APPLICATIONINSIGHTS_CONNECTION_STRING
 }
 
 
